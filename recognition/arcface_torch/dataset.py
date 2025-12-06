@@ -10,7 +10,6 @@ import torch
 from functools import partial
 from torch import distributed
 from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from utils.utils_distributed_sampler import DistributedSampler
 from utils.utils_distributed_sampler import get_dist_info, worker_init_fn
@@ -41,11 +40,30 @@ def get_dataloader(
 
     # Image Folder
     else:
-        transform = transforms.Compose([
-             transforms.RandomHorizontalFlip(),
-             transforms.ToTensor(),
-             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-             ])
+        try:
+            from torchvision.transforms import v2 as transforms_v2
+
+            transform = transforms_v2.Compose([
+                transforms_v2.ToImage(),
+                transforms_v2.RandomHorizontalFlip(),
+                transforms_v2.ToDtype(torch.float32, scale=True),
+                transforms_v2.Normalize(mean=[0.5, 0.5, 0.5],
+                                        std=[0.5, 0.5, 0.5]),
+                transforms_v2.RandomErasing(),
+            ])
+            print("Using torchvision.transforms.v2")
+
+        except Exception:
+            from torchvision import transforms
+
+            transform = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                    std=[0.5, 0.5, 0.5]),
+                transforms.RandomErasing(),
+            ])
+            print("Using old torchvision.transforms")
         train_set = ImageFolder(root_dir, transform)
 
     # DALI
@@ -194,7 +212,7 @@ def dali_data_iter(
     batch_size: int, rec_file: str, idx_file: str, num_threads: int,
     initial_fill=32768, random_shuffle=True,
     prefetch_queue_depth=1, local_rank=0, name="reader",
-    mean=(127.5, 127.5, 127.5), 
+    mean=(127.5, 127.5, 127.5),
     std=(127.5, 127.5, 127.5),
     dali_aug=False
     ):
@@ -246,7 +264,7 @@ def dali_data_iter(
     condition_flip = fn.random.coin_flip(probability=0.5)
     with pipe:
         jpegs, labels = fn.readers.mxnet(
-            path=rec_file, index_path=idx_file, initial_fill=initial_fill, 
+            path=rec_file, index_path=idx_file, initial_fill=initial_fill,
             num_shards=world_size, shard_id=rank,
             random_shuffle=random_shuffle, pad_last_batch=False, name=name)
         images = fn.decoders.image(jpegs, device="mixed", output_type=types.RGB)
