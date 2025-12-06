@@ -101,3 +101,18 @@ ENV/
 .mypy_cache/
 
 .DS_Store
+
+# docker
+compose.yaml
+
+# dataset
+data/
+datasets/
+dataset/
+
+# outputs
+outputs/
+results/
+models/
+logs/
+checkpoints/
