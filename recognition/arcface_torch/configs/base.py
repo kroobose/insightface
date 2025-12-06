@@ -22,7 +22,7 @@ config.interclass_filtering_threshold = 0
 config.fp16 = False
 config.batch_size = 128
 
-# For SGD 
+# For SGD
 config.optimizer = "sgd"
 config.lr = 0.1
 config.momentum = 0.9
@@ -33,11 +33,10 @@ config.weight_decay = 5e-4
 # config.lr = 0.001
 # config.weight_decay = 0.1
 
-config.verbose = 2000
-config.frequent = 10
+config.frequent = 100
 
 # For Large Sacle Dataset, such as WebFace42M
-config.dali = False 
+config.dali = False
 config.dali_aug = False
 
 # Gradient ACC
