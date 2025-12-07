@@ -23,6 +23,7 @@ def get_dataloader(
     dali_aug = False,
     seed = 2048,
     num_workers = 2,
+    transform = None,
     ) -> Iterable:
 
     rec = os.path.join(root_dir, 'train.rec')
@@ -40,30 +41,31 @@ def get_dataloader(
 
     # Image Folder
     else:
-        try:
-            from torchvision.transforms import v2 as transforms_v2
+        if transform is None:
+            try:
+                from torchvision.transforms import v2 as transforms_v2
 
-            transform = transforms_v2.Compose([
-                transforms_v2.ToImage(),
-                transforms_v2.RandomHorizontalFlip(),
-                transforms_v2.ToDtype(torch.float32, scale=True),
-                transforms_v2.Normalize(mean=[0.5, 0.5, 0.5],
+                transform = transforms_v2.Compose([
+                    transforms_v2.ToImage(),
+                    transforms_v2.RandomHorizontalFlip(),
+                    transforms_v2.ToDtype(torch.float32, scale=True),
+                    transforms_v2.Normalize(mean=[0.5, 0.5, 0.5],
+                                            std=[0.5, 0.5, 0.5]),
+                    transforms_v2.RandomErasing(),
+                ])
+                print("Using torchvision.transforms.v2")
+
+            except Exception:
+                from torchvision import transforms
+
+                transform = transforms.Compose([
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                         std=[0.5, 0.5, 0.5]),
-                transforms_v2.RandomErasing(),
-            ])
-            print("Using torchvision.transforms.v2")
-
-        except Exception:
-            from torchvision import transforms
-
-            transform = transforms.Compose([
-                transforms.RandomHorizontalFlip(),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=[0.5, 0.5, 0.5],
-                                    std=[0.5, 0.5, 0.5]),
-                transforms.RandomErasing(),
-            ])
-            print("Using old torchvision.transforms")
+                    transforms.RandomErasing(),
+                ])
+                print("Using old torchvision.transforms")
         train_set = ImageFolder(root_dir, transform)
 
     # DALI

@@ -77,7 +77,8 @@ def main(args):
         cfg.dali,
         cfg.dali_aug,
         cfg.seed,
-        cfg.num_workers
+        cfg.num_workers,
+        transform = cfg.transform,
     )
 
     backbone = get_model(
