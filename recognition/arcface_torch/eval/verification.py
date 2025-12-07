@@ -1,4 +1,4 @@
-"""Helper for evaluation on the Labeled Faces in the Wild dataset 
+"""Helper for evaluation on the Labeled Faces in the Wild dataset
 """
 
 # MIT License
@@ -218,9 +218,6 @@ def load_bin(path, image_size):
             if flip == 1:
                 img = mx.ndarray.flip(data=img, axis=2)
             data_list[flip][idx][:] = torch.from_numpy(img.asnumpy())
-        if idx % 1000 == 0:
-            print('loading bin', idx)
-    print(data_list[0].shape)
     return data_list, issame_list
 
 @torch.no_grad()
@@ -267,7 +264,6 @@ def test(data_set, backbone, batch_size, nfolds=10):
     std1 = 0.0
     embeddings = embeddings_list[0] + embeddings_list[1]
     embeddings = sklearn.preprocessing.normalize(embeddings)
-    print(embeddings.shape)
     print('infer time', time_consumed)
     _, _, accuracy, val, val_std, far = evaluate(embeddings, issame_list, nrof_folds=nfolds)
     acc2, std2 = np.mean(accuracy), np.std(accuracy)
